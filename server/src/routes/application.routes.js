@@ -29,6 +29,12 @@ router.get('/stats', applicationController.stats);
 /* ------------------------------- staff ------------------------------ */
 
 router.get(
+  '/all',
+  authorize(PERMISSIONS.APPLICATION_READ_ANY),
+  applicationController.listAll
+);
+
+router.get(
   '/queue',
   authorize(PERMISSIONS.APPLICATION_READ_ANY),
   allowRoles(ROLES.VERIFIER, ROLES.OFFICER, ROLES.ADMIN),

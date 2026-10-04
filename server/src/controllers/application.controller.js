@@ -26,12 +26,25 @@ const canEdit = (application, user) =>
 
 const create = asyncHandler(async (req, res) => {
   const offices = await Office.find({ active: true }).lean();
-  const office = offices.length ? offices[0]._id : undefined;
+  let office = req.body.office || (offices.length ? offices[0]._id : undefined);
+
+  if (office) {
+    const exists = await Office.findOne({ _id: office, active: true });
+    if (!exists) throw ApiError.badRequest('That passport office is not open right now');
+    office = exists._id;
+  }
+
+  const serviceType = ['fresh', 'renewal', 'lost', 'damaged'].includes(req.body.serviceType)
+    ? req.body.serviceType
+    : 'fresh';
+  const category = ['normal', 'tatkal'].includes(req.body.category) ? req.body.category : 'normal';
 
   const application = await Application.create({
     applicant: req.user._id,
     status: STATUS.DRAFT,
     office,
+    serviceType,
+    category,
     personal: {},
     contact: { email: req.user.email },
     family: {},
@@ -55,6 +68,25 @@ const create = asyncHandler(async (req, res) => {
     message: 'New application started. Fill in the details and send it when you are ready.',
     data: { application }
   });
+});
+
+/** Staff view - every application in the system. */
+const listAll = asyncHandler(async (req, res) => {
+  const filter = {};
+  if (req.query.status) filter.status = req.query.status;
+  if (req.query.search) {
+    const rx = new RegExp(String(req.query.search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    filter.$or = [{ refNo: rx }];
+  }
+
+  const applications = await Application.find(filter)
+    .sort('-createdAt')
+    .limit(300)
+    .populate('applicant', 'name email')
+    .populate('office', 'name city')
+    .lean();
+
+  res.json({ success: true, data: { applications, total: applications.length } });
 });
 
 const listMine = asyncHandler(async (req, res) => {
@@ -383,6 +415,7 @@ const stats = asyncHandler(async (req, res) => {
 module.exports = {
   create,
   listMine,
+  listAll,
   getOne,
   updateOwn,
   removeOwn,
