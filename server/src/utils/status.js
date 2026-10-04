@@ -29,18 +29,6 @@ const STATUS_LABELS = Object.freeze({
   [STATUS.REJECTED]: 'Rejected'
 });
 
-const STATUS_TONES = Object.freeze({
-  [STATUS.DRAFT]: 'neutral',
-  [STATUS.SUBMITTED]: 'info',
-  [STATUS.VERIFICATION]: 'info',
-  [STATUS.VERIFIED]: 'success',
-  [STATUS.APPROVAL]: 'info',
-  [STATUS.APPROVED]: 'success',
-  [STATUS.ISSUED]: 'success',
-  [STATUS.ON_HOLD]: 'warning',
-  [STATUS.REJECTED]: 'danger'
-});
-
 /** Ordered milestones shown to the applicant on the tracking page. */
 const APPLICANT_MILESTONES = Object.freeze([
   { status: STATUS.SUBMITTED, label: 'Application submitted' },
@@ -109,18 +97,11 @@ function availableActions(status) {
   return Object.keys(state);
 }
 
-function isValidTransition(from, action) {
-  return Boolean(getTransition(from, action));
-}
-
 module.exports = {
   STATUS,
   STATUS_LABELS,
-  STATUS_TONES,
   APPLICANT_MILESTONES,
-  TRANSITIONS,
   getTransition,
   actionRequirements,
-  availableActions,
-  isValidTransition
+  availableActions
 };

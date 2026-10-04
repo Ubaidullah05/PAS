@@ -1,11 +1,3 @@
-import { statusInfo } from '../lib/labels';
-
-export function Badge({ status, children, tone }) {
-  if (children) return <span className={`badge badge-${tone || 'neutral'}`}>{children}</span>;
-  const info = statusInfo(status);
-  return <span className={`badge badge-${info.tone}`}>{info.label}</span>;
-}
-
 export function Loader({ label = 'Loading…', dark }) {
   return (
     <div className="page-loader">
@@ -34,16 +26,6 @@ export function StatCard({ icon, tone = 'info', value, label }) {
         <div className="stat-value">{value}</div>
         <div className="stat-label">{label}</div>
       </div>
-    </div>
-  );
-}
-
-export function Field({ label, error, hint, children, className = '' }) {
-  return (
-    <div className={`field ${className}`}>
-      <label className="label">{label}</label>
-      {children}
-      {error ? <span className="field-error">{error}</span> : hint ? <span className="hint">{hint}</span> : null}
     </div>
   );
 }

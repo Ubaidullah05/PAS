@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { APPLICATION_PURPOSES } = require('../config/constants');
 
 const appointmentSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const appointmentSchema = new mongoose.Schema(
     slot: { type: mongoose.Schema.Types.ObjectId, ref: 'AppointmentSlot', required: true },
     date: { type: String, required: true },
     time: { type: String, required: true },
-    purpose: { type: String, enum: ['submission', 'verification', 'collection'], default: 'verification' },
+    purpose: { type: String, enum: APPLICATION_PURPOSES, default: 'verification' },
     status: { type: String, enum: ['booked', 'cancelled', 'completed', 'missed'], default: 'booked', index: true },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     cancelReason: { type: String, trim: true, maxlength: 300 }

@@ -13,4 +13,4 @@ const ALLOWED_UPLOAD_MIME = Object.freeze(['image/jpeg', 'image/png', 'image/web
 
 const APPLICATION_PURPOSES = Object.freeze(['submission', 'verification', 'collection']);
 
-module.exports = { DOCUMENT_TYPES, DOCUMENT_TYPE_VALUES, ALLOWED_UPLOAD_MIME, APPLICATION_PURPOSES };
+module.exports = { DOCUMENT_TYPE_VALUES, ALLOWED_UPLOAD_MIME, APPLICATION_PURPOSES };

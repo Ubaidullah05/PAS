@@ -163,6 +163,5 @@ module.exports = {
   ROLE_HOME,
   isRole,
   permissionsForRole,
-  roleHasPermission,
   userHasPermission
 };

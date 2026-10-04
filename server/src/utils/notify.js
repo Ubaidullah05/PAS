@@ -16,16 +16,4 @@ async function notify(user, payload) {
   }
 }
 
-async function notifyMany(users, payload) {
-  if (!users || !users.length) return;
-  const docs = users.filter(Boolean).map((user) => ({
-    user,
-    title: payload.title,
-    message: payload.message,
-    type: payload.type || 'info',
-    link: payload.link
-  }));
-  if (docs.length) await Notification.insertMany(docs);
-}
-
-module.exports = { notify, notifyMany };
+module.exports = { notify };

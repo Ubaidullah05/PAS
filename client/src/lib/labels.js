@@ -4,7 +4,7 @@
  * this only decides what we show or hide.
  */
 
-export const STATUS = {
+const STATUS = {
   DRAFT: 'draft',
   SUBMITTED: 'submitted',
   VERIFICATION: 'verification_in_progress',
@@ -16,7 +16,7 @@ export const STATUS = {
   REJECTED: 'rejected'
 };
 
-export const STATUS_INFO = {
+const STATUS_INFO = {
   [STATUS.DRAFT]: { label: 'Not sent yet', tone: 'neutral', icon: '📝' },
   [STATUS.SUBMITTED]: { label: 'Waiting for documents check', tone: 'info', icon: '📤' },
   [STATUS.VERIFICATION]: { label: 'Documents being checked', tone: 'info', icon: '🔍' },
@@ -28,7 +28,7 @@ export const STATUS_INFO = {
   [STATUS.REJECTED]: { label: 'Rejected', tone: 'danger', icon: '⛔' }
 };
 
-export const MILESTONES = [
+const MILESTONES = [
   { status: STATUS.SUBMITTED, label: 'Application submitted' },
   { status: STATUS.VERIFICATION, label: 'Documents being checked' },
   { status: STATUS.VERIFIED, label: 'Documents approved' },

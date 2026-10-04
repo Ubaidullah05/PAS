@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const { verifyToken } = require('../utils/jwt');
-const { userHasPermission, isRole, ROLES } = require('../config/rbac');
+const { userHasPermission, isRole } = require('../config/rbac');
 
 /**
  * Step 1 - confirm who you are.
@@ -33,23 +33,6 @@ async function authenticate(req, res, next) {
     }
     next(err);
   }
-}
-
-/**
- * Optional version of authenticate - used on public pages that show
- * different content when a user happens to be signed in.
- */
-async function optionalAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  if (!header.startsWith('Bearer ')) return next();
-  try {
-    const payload = verifyToken(header.slice(7).trim());
-    const user = await User.findById(payload.sub);
-    if (user && user.status === 'active') req.user = user;
-  } catch (err) {
-    // Public route - a bad token must never break it.
-  }
-  return next();
 }
 
 /**
@@ -95,14 +78,4 @@ function allowRoles(...roles) {
   };
 }
 
-/**
- * Step 4 - ownership rule: an applicant may only touch their own records.
- * Officers and admins (with the "read any" permission) may look at all.
- */
-function requireSelfOrPermission(req, resourceOwnerId, permission) {
-  const isOwner = String(resourceOwnerId) === String(req.user._id);
-  if (isOwner) return true;
-  return userHasPermission(req.user, permission);
-}
-
-module.exports = { authenticate, optionalAuth, authorize, allowRoles, requireSelfOrPermission, ROLES };
+module.exports = { authenticate, authorize, allowRoles };

@@ -437,7 +437,6 @@ module.exports = {
   getOne,
   updateOwn,
   removeOwn,
-  applyTransition,
   submit: asyncHandler((req, res) => applyTransition(req, res, 'submit')),
   queue,
   move,

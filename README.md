@@ -9,11 +9,34 @@ department-speak.
 
 ---
 
+## Run it in 30 seconds
+
+```bash
+npm install                                          # once
+npm run seed                                         # once - demo logins, offices, slots
+npm run dev                                          # starts BACKEND + FRONTEND together
+```
+
+Then open **http://localhost:5173** and click a role in the "Try it out" panel to sign in.
+
+**Want to run them separately?**
+
+| | Command | Runs on |
+| --- | --- | --- |
+| **Backend** (Express API) | `npm run dev:server` | http://localhost:5000 |
+| **Frontend** (React app) | `npm run dev:client` | http://localhost:5173 |
+
+Start the backend first, then the frontend — details in [How to run it](#how-to-run-it).
+
+---
+
 ## Table of contents
 
 - [What it does](#what-it-does)
 - [Tech stack](#tech-stack)
 - [How to run it](#how-to-run-it)
+  - [Run the backend (API server)](#6-run-the-backend-api-server)
+  - [Run the frontend (React app)](#7-run-the-frontend-react-app)
 - [Demo accounts](#demo-accounts)
 - [The passport journey](#the-passport-journey)
 - [Roles and permissions](#roles-and-permissions)
@@ -115,7 +138,7 @@ Any MongoDB Atlas or other hosted database works too — just put its connection
 `MONGO_URI`.
 
 To confirm it is up: `Get-Service MongoDB` (Windows) or `docker ps` (Docker) should show it
-running, and the API will confirm for you on start-up with `Connected to MongoDB`.
+running, and the API confirms it on start-up with `Database : connected to pas`.
 
 ### 3. Install, configure and seed
 
@@ -130,7 +153,7 @@ npm run seed                                            # 4 logins, 4 offices, 1
 The seed prints every account it creates, so you can sign in straight away. It is safe to run
 again at any time.
 
-### 4. Start the app
+### 4. Start both together (one terminal)
 
 ```bash
 npm run dev
@@ -164,7 +187,7 @@ origin and no CORS setup is needed while developing.
 Go to http://localhost:5173 and click any role in the **"Try it out"** panel on the sign-in
 page to fill the form for you, then press **Sign in**.
 
-### 6. Run the server (API)
+### 6. Run the backend (API server)
 
 The API must be running for the web app to work — it handles sign-in, data and file uploads.
 
@@ -215,7 +238,7 @@ curl.exe http://localhost:5000/api/health
 If the API fails with `EADDRINUSE`, another process already owns port 5000 — either stop it or
 change `PORT` in `server/.env`.
 
-### 7. Run the client (web app)
+### 7. Run the frontend (React app)
 
 **From the repository root** (in a second terminal, while the API is still running):
 
@@ -527,6 +550,26 @@ code. Validation messages are written for citizens, not developers.
 - Every sensitive action writes an audit log entry with the actor, action, target and IP.
 - The dev database is never trusted for authorisation decisions; the API re-checks ownership,
   role and permission on every request.
+
+### Dependency security
+
+```bash
+npm audit --omit=dev     # production dependencies: 0 vulnerabilities
+```
+
+Production dependencies (Express, Mongoose, JWT, bcrypt, multer, helmet, React, React Router)
+are clean.
+
+`npm audit` **without** `--omit=dev` reports findings that come only from developer tooling
+(`jest`, `nodemon`) and are not reachable at runtime:
+
+- **braces (CVE-2026-93687)** - a stack-overflow issue in a pattern-matching library. There is
+  **no patched release yet** (3.0.3 is the newest), it is present only under `jest` and
+  `nodemon`, and this codebase never passes user input to a pattern matcher: file uploads are
+  validated with a plain allow-list comparison, not glob matching.
+- **Do not run `npm audit fix --force`.** It proposes downgrading `nodemon` to `1.14.10` (a
+  2018 release) and still leaves the finding in place. Re-check periodically with
+  `npm audit --omit=dev` instead; once an upstream patch ships, `npm install` picks it up.
 
 ---
 

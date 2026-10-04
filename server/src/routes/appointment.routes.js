@@ -4,6 +4,7 @@ const controller = require('../controllers/appointment.controller');
 const { authenticate, authorize, allowRoles } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const { PERMISSIONS, ROLES } = require('../config/rbac');
+const { APPLICATION_PURPOSES } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -24,7 +25,7 @@ router.post(
   [
     body('applicationId').isMongoId().withMessage('That application reference is not valid'),
     body('slotId').isMongoId().withMessage('Please choose a time slot'),
-    body('purpose').optional().isIn(['submission', 'verification', 'collection']),
+    body('purpose').optional().isIn(APPLICATION_PURPOSES),
     validate
   ],
   controller.book
