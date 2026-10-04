@@ -1,0 +1,8 @@
+node_modules/
+uploads/
+.env
+dist/
+coverage/
+*.log
+.DS_Store
+test-output.txt
