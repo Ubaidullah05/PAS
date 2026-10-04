@@ -26,7 +26,7 @@ export default function AdminAudit() {
     const query = resource ? `?resource=${resource}&limit=200` : '?limit=200';
     api
       .get(`/admin/audit${query}`)
-      .then((res) => setLogs(res.data.data.logs))
+      .then((res) => setLogs(res.data.logs))
       .catch((err) => notify(err))
       .finally(() => setLoading(false));
   }, [resource, notify]);

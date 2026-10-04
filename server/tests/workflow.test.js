@@ -56,6 +56,23 @@ describe('Application journey', () => {
     expect(res.body.data.application.statusHistory.length).toBeGreaterThanOrEqual(2);
   });
 
+  test('a draft may be saved with blanks, but an unknown office is refused', async () => {
+    const app = await newApplication();
+
+    const blank = await api()
+      .patch(`/api/applications/${app._id}`)
+      .set(applicant.auth)
+      .send({ personal: { firstName: '', dob: '' }, contact: { pincode: '' }, declarations: { agreesToTerms: false } });
+    expect(blank.status).toBe(200);
+
+    const unknownOffice = await api()
+      .patch(`/api/applications/${app._id}`)
+      .set(applicant.auth)
+      .send({ office: '64b000000000000000000000' });
+    expect(unknownOffice.status).toBe(400);
+    expect(unknownOffice.body.message).toMatch(/passport office/i);
+  });
+
   test('the full journey: check, approve, issue', async () => {
     const id = (await submitFreshApplication())._id;
 

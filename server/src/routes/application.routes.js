@@ -54,9 +54,9 @@ router.patch(
   allowRoles(ROLES.APPLICANT),
   [
     param('id').isMongoId().withMessage('That application reference is not valid'),
-    body('personal.dob').optional().isISO8601().withMessage('Please enter a valid date of birth'),
+    body('personal.dob').optional({ values: 'falsy' }).isISO8601().withMessage('Please enter a valid date of birth'),
     body('contact.pincode')
-      .optional()
+      .optional({ values: 'falsy' })
       .matches(/^[0-9]{6}$/)
       .withMessage('Pincode must be 6 digits'),
     validate

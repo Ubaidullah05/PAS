@@ -62,7 +62,7 @@ export default function App() {
           <Route
             path="/applications/new"
             element={
-              <ProtectedRoute roles={['applicant', 'admin']}>
+              <ProtectedRoute roles={['applicant']}>
                 <Apply />
               </ProtectedRoute>
             }

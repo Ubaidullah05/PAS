@@ -18,6 +18,7 @@ export default function Apply() {
   const [category, setCategory] = useState('normal');
   const [office, setOffice] = useState('');
   const [offices, setOffices] = useState([]);
+  const [officesLoaded, setOfficesLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function Apply() {
         setOffices(res.data.offices);
         if (res.data.offices[0]) setOffice(res.data.offices[0]._id);
       })
-      .catch((err) => notify(err));
+      .catch((err) => notify(err))
+      .finally(() => setOfficesLoaded(true));
   }, [notify]);
 
   const start = async () => {
@@ -43,7 +45,7 @@ export default function Apply() {
     }
   };
 
-  if (offices.length === 0) return <Loader label="Loading passport offices…" />;
+  if (!officesLoaded) return <Loader label="Loading passport offices…" />;
 
   return (
     <div className="stack">
@@ -76,6 +78,13 @@ export default function Apply() {
           </button>
         ))}
       </div>
+
+      {offices.length === 0 && (
+        <div className="alert alert-warning">
+          <strong>No passport office is taking applications right now.</strong> Please come back a
+          little later.
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head">

@@ -21,12 +21,12 @@ export default function AdminUsers() {
   const load = () =>
     api
       .get('/admin/users')
-      .then((res) => setUsers(res.data.data.users))
+      .then((res) => setUsers(res.data.users))
       .catch((err) => notify(err));
 
   useEffect(() => {
     Promise.all([load(), api.get('/admin/roles').catch(() => null)])
-      .then(([, roleRes]) => setRoles(roleRes?.data.data.roles || []))
+      .then(([, roleRes]) => setRoles(roleRes?.data.roles || []))
       .catch((err) => notify(err))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps

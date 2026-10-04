@@ -16,7 +16,7 @@ export default function AdminOffices() {
   const load = () =>
     api
       .get('/appointments/offices')
-      .then((res) => setOffices(res.data.data.offices))
+      .then((res) => setOffices(res.data.offices))
       .catch((err) => notify(err));
 
   useEffect(() => {

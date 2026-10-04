@@ -163,6 +163,54 @@ describe('RBAC on the API', () => {
     expect(res.status).toBe(403);
   });
 
+  test('shared actions are still tied to their own stage', async () => {
+    const { makeOffice, validApplicationBody } = require('./helpers');
+    await makeOffice();
+    const verifier = await makeUser(ROLES.VERIFIER);
+    const officer = await makeUser(ROLES.OFFICER);
+    const applicant = await makeUser(ROLES.APPLICANT);
+
+    const created = await api().post('/api/applications').set(applicant.auth).expect(201);
+    const id = created.body.data.application._id;
+    await api()
+      .patch(`/api/applications/${id}`)
+      .set(applicant.auth)
+      .send(validApplicationBody(applicant.user))
+      .expect(200);
+    await api().post(`/api/applications/${id}/submit`).set(applicant.auth).expect(200);
+
+    // Verification stage belongs to the verifier.
+    await api().post(`/api/applications/${id}/move`).set(verifier.auth).send({ action: 'startVerification' }).expect(200);
+    const officerSendBack = await api()
+      .post(`/api/applications/${id}/move`)
+      .set(officer.auth)
+      .send({ action: 'sendBack', remark: 'Not my stage' });
+    expect(officerSendBack.status).toBe(403);
+    const officerReject = await api()
+      .post(`/api/applications/${id}/move`)
+      .set(officer.auth)
+      .send({ action: 'reject', remark: 'Not my stage' });
+    expect(officerReject.status).toBe(403);
+
+    // Approval stage belongs to the officer.
+    await api().post(`/api/applications/${id}/move`).set(verifier.auth).send({ action: 'approveDocuments' }).expect(200);
+    await api().post(`/api/applications/${id}/move`).set(officer.auth).send({ action: 'startApproval' }).expect(200);
+    const verifierReject = await api()
+      .post(`/api/applications/${id}/move`)
+      .set(verifier.auth)
+      .send({ action: 'reject', remark: 'Not my stage' });
+    expect(verifierReject.status).toBe(403);
+    const verifierSendBack = await api()
+      .post(`/api/applications/${id}/move`)
+      .set(verifier.auth)
+      .send({ action: 'sendBack', remark: 'Not my stage' });
+    expect(verifierSendBack.status).toBe(403);
+
+    // The right person can still finish the job.
+    await api().post(`/api/applications/${id}/move`).set(officer.auth).send({ action: 'approve' }).expect(200);
+    await api().post(`/api/applications/${id}/move`).set(officer.auth).send({ action: 'issue' }).expect(200);
+  });
+
   test('an unauthenticated visitor is asked to sign in', async () => {
     const res = await api().get('/api/applications/mine');
     expect(res.status).toBe(401);

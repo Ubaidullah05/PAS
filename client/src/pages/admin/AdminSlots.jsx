@@ -19,13 +19,13 @@ export default function AdminSlots() {
   const load = () =>
     api
       .get('/appointments/slots/all')
-      .then((res) => setSlots(res.data.data.slots))
+      .then((res) => setSlots(res.data.slots))
       .catch((err) => notify(err));
 
   useEffect(() => {
     Promise.all([load(), api.get('/appointments/offices')])
       .then(([, officeRes]) => {
-        const list = officeRes.data.data.offices;
+        const list = officeRes.data.offices;
         setOffices(list);
         if (list[0]) {
           setSingle((s) => ({ ...s, office: list[0]._id }));

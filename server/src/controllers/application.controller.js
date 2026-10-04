@@ -171,7 +171,22 @@ const updateOwn = asyncHandler(async (req, res) => {
 
   const allowedSections = ['personal', 'contact', 'family', 'previousPassport', 'declarations', 'serviceType', 'category', 'office'];
   for (const key of allowedSections) {
-    if (req.body[key] !== undefined) application[key] = req.body[key];
+    const value = req.body[key];
+    if (value === undefined) continue;
+    // A draft may be saved half finished, so blanks are simply ignored.
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [child, childValue] of Object.entries(value)) {
+        if (childValue === '' || childValue === null || childValue === undefined) continue;
+        application.set(`${key}.${child}`, childValue);
+      }
+    } else if (value !== '') {
+      application.set(key, value);
+    }
+  }
+
+  if (application.isModified('office') && application.office) {
+    const office = await Office.findOne({ _id: application.office, active: true });
+    if (!office) throw ApiError.badRequest('That passport office is not open right now');
   }
 
   await application.save();
@@ -214,8 +229,11 @@ async function applyTransition(req, res, action) {
   }
 
   // RBAC rule 1 + 2 - checked before anything else: is this person's
-  // role allowed to do this at all, anywhere in the journey?
-  const allowedByRole = requirements.filter(
+  // role allowed to take THIS step? The requirement is read from the
+  // step itself so a verifier can never act in the officer's stage
+  // (and the other way around), even for shared actions like reject.
+  const scopedRequirements = move ? [move] : requirements;
+  const allowedByRole = scopedRequirements.filter(
     (requirement) => requirement.by.includes(req.user.role) && userHasPermission(req.user, requirement.who)
   );
   if (!allowedByRole.length) {

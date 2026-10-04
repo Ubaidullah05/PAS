@@ -15,13 +15,13 @@ export default function AdminHome() {
   useEffect(() => {
     Promise.all([
       api.get('/admin/reports'),
-      api.get('/admin/audit?limit=6').catch(() => ({ data: { data: { logs: [] } } })),
-      api.get('/appointments/slots/all').catch(() => ({ data: { data: { slots: [] } } }))
+      api.get('/admin/audit?limit=6').catch(() => ({ data: { logs: [] } })),
+      api.get('/appointments/slots/all').catch(() => ({ data: { slots: [] } }))
     ])
       .then(([reportRes, auditRes, slotRes]) => {
         setReports(reportRes.data);
-        setLogs(auditRes.data.data.logs);
-        setSlots(slotRes.data.data.slots);
+        setLogs(auditRes.data.logs);
+        setSlots(slotRes.data.slots);
       })
       .catch((err) => notify(err))
       .finally(() => setLoading(false));
