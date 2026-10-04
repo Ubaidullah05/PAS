@@ -5,7 +5,7 @@
   "description": "Passport Automation System API - Node.js + Express + MongoDB",
   "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "seed": "node src/utils/seed.js",
     "test": "jest --runInBand --forceExit"
@@ -24,9 +24,8 @@
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
+    "jest": "^30.5.2",
     "mongodb-memory-server": "^10.1.2",
-    "nodemon": "^3.1.7",
     "supertest": "^7.0.0"
   },
   "jest": {

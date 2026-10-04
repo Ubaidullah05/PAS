@@ -201,13 +201,14 @@ npm run dev:server
 
 ```bash
 cd server
-npm run dev        # nodemon - restarts on every file change (use npm start to run once)
+npm run dev        # node --watch - restarts on every file change (use npm start to run once)
 ```
 
 Expected output (keep this terminal open):
 
 ```
-[nodemon] starting `node src/index.js`
+> server@1.0.0 dev
+> node --watch src/index.js
 
   Database   : connected to pas
 
@@ -309,7 +310,8 @@ matches).
 
 Press `Ctrl + C` in the terminal running `npm run dev` — it stops both the API and the web
 app. Start it again the same way whenever you need it; there is no background service to
-clean up. `nodemon` restarts the API on its own whenever you edit a file under `server/`, and
+clean up. Node's built-in watcher (`node --watch`) restarts the API on its own whenever you edit
+a file under `server/`, and
 the browser hot-reloads when you edit files under `client/src/`.
 
 ### 11. Walk through the whole journey
@@ -554,22 +556,20 @@ code. Validation messages are written for citizens, not developers.
 ### Dependency security
 
 ```bash
-npm audit --omit=dev     # production dependencies: 0 vulnerabilities
+npm audit             # everything, including dev tooling: 0 vulnerabilities
+npm audit --omit=dev  # production dependencies only:     0 vulnerabilities
 ```
 
 Production dependencies (Express, Mongoose, JWT, bcrypt, multer, helmet, React, React Router)
-are clean.
+are clean, and so is the full developer toolchain.
 
-`npm audit` **without** `--omit=dev` reports findings that come only from developer tooling
-(`jest`, `nodemon`) and are not reachable at runtime:
-
-- **braces (CVE-2026-93687)** - a stack-overflow issue in a pattern-matching library. There is
-  **no patched release yet** (3.0.3 is the newest), it is present only under `jest` and
-  `nodemon`, and this codebase never passes user input to a pattern matcher: file uploads are
-  validated with a plain allow-list comparison, not glob matching.
-- **Do not run `npm audit fix --force`.** It proposes downgrading `nodemon` to `1.14.10` (a
-  2018 release) and still leaves the finding in place. Re-check periodically with
-  `npm audit --omit=dev` instead; once an upstream patch ships, `npm install` picks it up.
+How it got there, for the record: `nodemon` (via `chokidar`) pulled in **braces
+(CVE-2026-93687)**, a stack-overflow issue in a pattern-matching library with **no patched
+release**, and `jest` 29 pulled in two more. Rather than wait for an upstream fix, `nodemon` was
+**removed entirely** — `npm run dev` now uses Node's built-in `node --watch`, which needs no
+package at all — and `jest` was upgraded to 30. If a finding ever reappears, run `npm audit`
+first and check *what* it wants to change; avoid `npm audit fix --force`, which "fixes" advisories
+by downgrading dependencies to years-old releases without actually removing the finding.
 
 ---
 
@@ -605,7 +605,7 @@ Run from the repository root.
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | API and web app together with coloured output |
-| `npm run dev:server` | API only, with nodemon reload |
+| `npm run dev:server` | API only, with automatic reload on file changes |
 | `npm run dev:client` | web app only |
 | `npm run seed` | demo users, four offices, 14 days of slots |
 | `npm run build` | production build of the web app into `client/dist` |
