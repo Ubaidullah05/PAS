@@ -164,16 +164,96 @@ origin and no CORS setup is needed while developing.
 Go to http://localhost:5173 and click any role in the **"Try it out"** panel on the sign-in
 page to fill the form for you, then press **Sign in**.
 
-### 6. Running the two halves separately
+### 6. Run the server (API)
 
-Useful while debugging — each half gets its own terminal:
+The API must be running for the web app to work — it handles sign-in, data and file uploads.
+
+**From the repository root:**
 
 ```bash
-npm run dev:server     # API only, restarts on every file change (nodemon)
-npm run dev:client     # web app only, hot module replacement
+npm run dev:server
 ```
 
-### 7. Running the tests
+**Or from inside the `server` folder:**
+
+```bash
+cd server
+npm run dev        # nodemon - restarts on every file change (use npm start to run once)
+```
+
+Expected output (keep this terminal open):
+
+```
+[nodemon] starting `node src/index.js`
+
+  Database   : connected to pas
+
+  Passport Automation System API
+  Environment : development
+  Listening   : http://localhost:5000
+```
+
+Confirm it is healthy in a second terminal:
+
+```bash
+curl http://localhost:5000/api/health
+# {"success":true,"message":"Passport Automation System is running","data":{"uptime":12.34}}
+```
+
+PowerShell users (`curl` is an alias there and prints a formatted object instead of JSON) —
+use the real binary:
+
+```powershell
+curl.exe http://localhost:5000/api/health
+# or
+(Invoke-WebRequest http://localhost:5000/api/health).Content
+```
+
+**MUST BE RUNNING:** MongoDB on `127.0.0.1:27017`, otherwise the API exits with
+`MongooseServerSelectionError` (see step 2).
+
+If the API fails with `EADDRINUSE`, another process already owns port 5000 — either stop it or
+change `PORT` in `server/.env`.
+
+### 7. Run the client (web app)
+
+**From the repository root** (in a second terminal, while the API is still running):
+
+```bash
+npm run dev:client
+```
+
+**Or from inside the `client` folder:**
+
+```bash
+cd client
+npm run dev        # vite dev server with hot module replacement
+```
+
+Expected output (keep this terminal open too):
+
+```
+  VITE v6.4.3  ready in 309 ms
+
+  Local:   http://localhost:5173/
+```
+
+Now open **http://localhost:5173** in your browser.
+
+Notes:
+
+- The client serves only the front end. Every call it makes goes to `/api`, which Vite proxies
+  to `http://localhost:5000` (see `client/vite.config.js`), so the API must already be running.
+- If the browser shows a network error on load, check the API terminal from step 6.
+- Changes under `client/src/` appear instantly; no refresh or rebuild needed.
+
+To stop either half, press `Ctrl + C` in its terminal — see step 10.
+
+**Both halves together in one terminal:** if you prefer a single command, use `npm run dev`
+(step 4), which starts the API and the client side by side with coloured prefixes (`[server]`
+/ `[client]`).
+
+### 8. Running the tests
 
 ```bash
 npm test               # everything: server then client
@@ -185,7 +265,7 @@ npm run lint           # ESLint over the client
 The server tests spin up their own temporary database, so they never touch your real one and
 you do not need MongoDB running to run the test suite.
 
-### 8. Production-style run
+### 9. Production-style run
 
 ```bash
 npm run build          # builds the web app into client/dist
@@ -202,14 +282,14 @@ The API does not serve the built front end. Host `client/dist` on any static hos
 point its `/api` requests at the running API (set `CLIENT_URL` to that address so CORS
 matches).
 
-### 9. Stopping and restarting
+### 10. Stopping and restarting
 
 Press `Ctrl + C` in the terminal running `npm run dev` — it stops both the API and the web
 app. Start it again the same way whenever you need it; there is no background service to
 clean up. `nodemon` restarts the API on its own whenever you edit a file under `server/`, and
 the browser hot-reloads when you edit files under `client/src/`.
 
-### 10. Walk through the whole journey
+### 11. Walk through the whole journey
 
 To see the full flow end to end, open two browser windows (or use a private window for the
 staff side):
