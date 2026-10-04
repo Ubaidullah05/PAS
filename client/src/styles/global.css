@@ -429,6 +429,15 @@ button {
   resize: vertical;
 }
 
+/* Compact select used inside dense tables */
+.select-sm {
+  width: auto;
+  min-width: 150px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
 .field-error {
   color: var(--danger);
   font-size: 0.8rem;
