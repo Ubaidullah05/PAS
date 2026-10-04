@@ -13,7 +13,7 @@ department-speak.
 
 - [What it does](#what-it-does)
 - [Tech stack](#tech-stack)
-- [Quick start](#quick-start)
+- [How to run it](#how-to-run-it)
 - [Demo accounts](#demo-accounts)
 - [The passport journey](#the-passport-journey)
 - [Roles and permissions](#roles-and-permissions)
@@ -71,31 +71,159 @@ department-speak.
 
 ---
 
-## Quick start
+## How to run it
 
-**Requirements:** Node.js 18+ (20+ recommended) and a MongoDB instance running locally
-(`mongodb://127.0.0.1:27017`) or a connection string you can supply.
+### 1. Check what you need
+
+| Requirement | Version | How to check |
+| --- | --- | --- |
+| Node.js | 18 or newer (20+ recommended) | `node -v` |
+| npm | 9 or newer (ships with Node) | `npm -v` |
+| MongoDB | any recent release, running locally | see step 2 |
+
+This project was built and tested on **Node 24** with **MongoDB** on `127.0.0.1:27017`.
+
+### 2. Make sure MongoDB is running
+
+The API stores everything in MongoDB, so it must be up before you start the app.
+
+**Docker (works everywhere)**
 
 ```bash
-# 1. install everything (root, plus both workspaces)
-npm install
+docker run -d --name pas-mongo -p 27017:27017 mongo:7
+```
 
-# 2. create the server environment file
-cp server/.env.example server/.env      # Windows: copy server\.env.example server\.env
+**Windows** — install MongoDB Community, then start the service:
 
-# 3. add demo users, offices and appointment slots
-npm run seed
+```powershell
+Start-Service MongoDB          # check it with: Get-Service MongoDB
+```
 
-# 4. start the API (:5000) and the web app (:5173) together
+**macOS**
+
+```bash
+brew install mongodb-community && brew services start mongodb-community
+```
+
+**Ubuntu / Debian**
+
+```bash
+sudo systemctl start mongod
+```
+
+Any MongoDB Atlas or other hosted database works too — just put its connection string in
+`MONGO_URI`.
+
+To confirm it is up: `Get-Service MongoDB` (Windows) or `docker ps` (Docker) should show it
+running, and the API will confirm for you on start-up with `Connected to MongoDB`.
+
+### 3. Install, configure and seed
+
+Run all three commands from the repository root:
+
+```bash
+npm install                                             # installs root + server + client
+cp server/.env.example server/.env                      # Windows: copy server\.env.example server\.env
+npm run seed                                            # 4 logins, 4 offices, 14 days of slots
+```
+
+The seed prints every account it creates, so you can sign in straight away. It is safe to run
+again at any time.
+
+### 4. Start the app
+
+```bash
 npm run dev
 ```
 
-Then open **http://localhost:5173**.
+That single command runs both halves with coloured, prefixed output:
 
-The sign-in page has a "Try it out" panel — click any role to fill the form for you.
+```
+[server]
+[server]   Database   : connected to pas
+[server]
+[server]   Passport Automation System API
+[server]   Environment : development
+[server]   Listening   : http://localhost:5000
+[client]
+[client]   VITE v6.4.3  ready in 309 ms
+[client]   Local:   http://localhost:5173/
+```
 
-> The server refuses to start in `production` mode unless `JWT_SECRET` (32+ characters) and
-> `MONGO_URI` are set, so demo defaults can never leak into a real deployment.
+| Address | What it is |
+| --- | --- |
+| **http://localhost:5173** | the web app — **open this one** |
+| http://localhost:5000/api/health | API health check (`{"success":true,...}`) |
+| http://localhost:5173/api/health | same check through the dev proxy |
+
+The Vite dev server proxies `/api` to port 5000, so the front end only ever talks to one
+origin and no CORS setup is needed while developing.
+
+### 5. Sign in
+
+Go to http://localhost:5173 and click any role in the **"Try it out"** panel on the sign-in
+page to fill the form for you, then press **Sign in**.
+
+### 6. Running the two halves separately
+
+Useful while debugging — each half gets its own terminal:
+
+```bash
+npm run dev:server     # API only, restarts on every file change (nodemon)
+npm run dev:client     # web app only, hot module replacement
+```
+
+### 7. Running the tests
+
+```bash
+npm test               # everything: server then client
+npm run test:server    # 83 tests, 6 suites (uses an in-memory MongoDB)
+npm run test:client    # 23 tests, 3 files
+npm run lint           # ESLint over the client
+```
+
+The server tests spin up their own temporary database, so they never touch your real one and
+you do not need MongoDB running to run the test suite.
+
+### 8. Production-style run
+
+```bash
+npm run build          # builds the web app into client/dist
+npm run preview        # serves that build on http://localhost:4173 to check it
+npm start              # runs the API
+```
+
+Set `NODE_ENV=production` in `server/.env` first — that is the cross-platform way, and it also
+lets the API verify its configuration. In production mode the API **refuses to start** unless
+`JWT_SECRET` is at least 32 characters and `MONGO_URI` is set, so demo defaults can never reach
+a real deployment.
+
+The API does not serve the built front end. Host `client/dist` on any static host or CDN and
+point its `/api` requests at the running API (set `CLIENT_URL` to that address so CORS
+matches).
+
+### 9. Stopping and restarting
+
+Press `Ctrl + C` in the terminal running `npm run dev` — it stops both the API and the web
+app. Start it again the same way whenever you need it; there is no background service to
+clean up. `nodemon` restarts the API on its own whenever you edit a file under `server/`, and
+the browser hot-reloads when you edit files under `client/src/`.
+
+### 10. Walk through the whole journey
+
+To see the full flow end to end, open two browser windows (or use a private window for the
+staff side):
+
+1. Sign in as the **applicant**, start an application, fill every section, upload a document
+   and press send.
+2. Sign in as the **verifier**, open *Documents to check*, review the paper, approve the
+   documents.
+3. Sign in as the **officer**, open *Applications to approve*, approve, then issue the
+   passport — a passport number is generated automatically.
+4. Back in the applicant window, the tracker and the status history update, and a
+   notification explains what changed.
+5. Sign in as the **administrator** to see the metrics, manage people and roles, offices and
+   appointment slots, and read the audit trail of every action above.
 
 ---
 
@@ -358,8 +486,11 @@ Run from the repository root.
 | `npm run dev:client` | web app only |
 | `npm run seed` | demo users, four offices, 14 days of slots |
 | `npm run build` | production build of the web app into `client/dist` |
+| `npm run preview` | serve the built web app locally to check the build |
 | `npm start` | run the API (set `NODE_ENV=production` for a real deployment) |
 | `npm test` | full test suite |
+| `npm run test:server` | server tests only (no database needed) |
+| `npm run test:client` | client tests only |
 | `npm run lint` | ESLint over the client |
 
 ---
