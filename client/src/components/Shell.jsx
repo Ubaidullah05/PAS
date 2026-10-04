@@ -221,9 +221,8 @@ export default function Shell() {
 
           <div className="row">
             <Notifications />
-            <Link to="/profile" className="row" style={{ gap: 10 }}>
-              <span className="avatar">{initials}</span>
-              <div className="small" style={{ display: 'none' }} />
+            <Link to="/profile" className="avatar" aria-label="My details">
+              {initials}
             </Link>
             <button className="btn btn-outline btn-sm" type="button" onClick={signOut}>
               Sign out
